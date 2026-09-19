@@ -119,7 +119,15 @@ exports.LoadUtils = () => {
                     .Msg.getMessagesById([msgId])
             )?.messages?.[0];
         const chat = await window.WWebJS.getChat(chatId, { getAsModel: false });
-        return await window.require('WAWebChatForwardMessage').forwardMessages({
+        // WA Web 2.3000.x ships forwardMessages in a bundle loaded on demand.
+        let forwardModule = window.require('WAWebChatForwardMessage');
+        if (!forwardModule) {
+            await window
+                .require('WAWebForwardMessageFlowLoadable')
+                .requireBundle();
+            forwardModule = window.require('WAWebChatForwardMessage');
+        }
+        return await forwardModule.forwardMessages({
             chat: chat,
             msgs: [msg],
             multicast: true,
