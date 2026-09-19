@@ -1336,7 +1336,8 @@ class Client extends EventEmitter {
         this._framenavigatedRegistered = false;
 
         const browser = this.pupBrowser;
-        const isConnected = browser?.isConnected?.();
+        // puppeteer 25 removed Browser.isConnected(); the `connected` getter exists in 24.x too.
+        const isConnected = browser?.connected ?? browser?.isConnected?.();
         if (isConnected) {
             await browser.close();
         }
@@ -1353,7 +1354,10 @@ class Client extends EventEmitter {
         await this.pupBrowser.close();
 
         let maxDelay = 0;
-        while (this.pupBrowser.isConnected() && maxDelay < 10) {
+        while (
+            (this.pupBrowser.connected ?? this.pupBrowser.isConnected()) &&
+            maxDelay < 10
+        ) {
             // waits a maximum of 1 second before calling the AuthStrategy
             await new Promise((resolve) => setTimeout(resolve, 100));
             maxDelay++;
